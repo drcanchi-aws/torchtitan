@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from torch.nn.attention import sdpa_kernel, SDPBackend
 from torch.nn.attention.flex_attention import (
     _mask_mod_signature,
+    AuxRequest,
     BlockMask,
     create_block_mask,
     flex_attention,
@@ -93,8 +94,9 @@ class FlexAttention(torch.nn.Module):
 
         # Regular path without sink
         block_mask = FlexAttention.block_masks[self.mask_key]
+        return_aux = AuxRequest(lse=True) if return_lse else None
         return FlexAttention.flex_attn(
-            q, k, v, block_mask=block_mask, return_lse=return_lse, scale=scale
+            q, k, v, block_mask=block_mask, return_aux=return_aux, scale=scale
         )
 
     @staticmethod
