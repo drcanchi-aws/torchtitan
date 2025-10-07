@@ -122,6 +122,30 @@ def parallelize_llama(
 
     if job_config.compile.enable and "model" in job_config.compile.components:
         torch._inductor.config.reorder_for_peak_memory = False
-        model = torch.compile(model, backend=job_config.compile.backend, fullgraph=True)
+        from torch._dynamo.backends.common import aot_autograd as auto_autograd_backend
+        from typing import Any
+        from torch._inductor.fx_passes.overlap_scheduling import schedule_overlap_bucketing
+
+        torch._inductor.config.test_configs.aten_fx_overlap_preserving_bucketing = True
+        torch._inductor.config.test_configs.aten_fx_overlap_insert_overlap_deps = False
+        torch._inductor.config.allow_buffer_reuse = False
+        torch._inductor.config.reorder_for_peak_memory = False
+        torch._inductor.config.reorder_for_compute_comm_overlap = False
+
+
+        def aten_autobucketing_reordering_pass(
+            gm: torch.fx.GraphModule,
+            example_inputs: Any
+        ) -> torch.fx.GraphModule:
+            gm = schedule_overlap_bucketing(gm)
+            return gm
+
+        aot_eager_hackable = auto_autograd_backend(
+            fw_compiler=aten_autobucketing_reordering_pass,
+            bw_compiler=aten_autobucketing_reordering_pass,
+            keep_inference_input_mutations=True,
+        )
+
+        model = torch.compile(model, backend=aot_eager_hackable, fullgraph=True)
 
     return model
