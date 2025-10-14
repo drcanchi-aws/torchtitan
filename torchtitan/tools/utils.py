@@ -15,7 +15,7 @@ import torch
 from torch._utils import _get_available_device_type, _get_device_module
 
 from torchtitan.tools.logging import logger
-
+import torch_neuron
 
 def has_cuda_capability(major: int, minor: int) -> bool:
     return torch.cuda.is_available() and torch.cuda.get_device_capability() >= (
@@ -117,7 +117,15 @@ def get_peak_flops(device_name: str) -> int:
     elif "l40s" in device_name:
         # data from: "https://resources.nvidia.com/en-us-l40s/l40s-datasheet-28413"
         return 362e12
+    elif "neuron" in device_name:
+        # we assume lnc1 here
+        systolic_array_size = 128 * 128  # 16,384 processing units
+        flops_per_cycle = 2  # BF16 operations
+        clock_rate_ghz = 2.4
 
+        # Calculate theoretical peak in FLOPS
+        theoretical_peak_flops = systolic_array_size * flops_per_cycle * clock_rate_ghz * 1e9
+        return theoretical_peak_flops
     else:  # for other GPU types, assume A100
         logger.warning(f"Peak flops undefined for: {device_name}, fallback to A100")
         return 312e12

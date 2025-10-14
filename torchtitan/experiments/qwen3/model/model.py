@@ -446,6 +446,8 @@ class Qwen3Model(nn.Module, ModelProtocol):
 
         """
         # passthrough for nonexistent layers, allows easy configuration of pipeline parallel stages
+        # for reduced vocab_size
+        tokens = tokens % self.vocab_size
         h = self.tok_embeddings(tokens) if self.tok_embeddings else tokens
 
         for layer in self.layers.values():
