@@ -94,6 +94,18 @@ qwen3_configs = {
         hidden_dim=12288,
         rope_theta=1000000,
     ),
+    "8B-reduced-size-by-TP4": Qwen3ModelArgs(
+        vocab_size=4096, # ~=151936/TP4/(layers 36//4),
+        max_seq_len=4096,
+        head_dim=128,
+        dim=4096,
+        n_layers=4,
+        n_heads=8,
+        n_kv_heads=2,
+        qk_norm=True,
+        hidden_dim=3072,
+        rope_theta=1000000,
+    ),
     "14B": Qwen3ModelArgs(
         vocab_size=151936,
         max_seq_len=4096,
