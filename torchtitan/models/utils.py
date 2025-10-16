@@ -373,7 +373,7 @@ def get_dense_model_nparams_and_flops(
     l, h, q, t = (
         model_args.n_layers,
         model_args.n_heads,
-        model_args.dim // model_args.n_heads,
+        model_args.head_dim,
         seq_len,
     )
     # Reasoning behind the factor of 12 for the self-attention part of the formula:
@@ -432,7 +432,7 @@ def get_moe_model_nparams_and_flops(
     l, h, q, t = (
         model_args.n_layers,
         model_args.n_heads,
-        model_args.dim // model_args.n_heads,
+        model_args.head_dim,
         seq_len,
     )
 

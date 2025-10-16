@@ -31,7 +31,7 @@ from torchtitan.tools.profiling import (
     maybe_enable_memory_snapshot,
     maybe_enable_profiling,
 )
-
+import torch_neuron
 
 class Trainer(torch.distributed.checkpoint.stateful.Stateful):
     # core configs
@@ -504,6 +504,8 @@ class Trainer(torch.distributed.checkpoint.stateful.Stateful):
         # entire step will not be executed.
         for _microbatch in range(self.gradient_accumulation_steps):
             input_dict, labels = next(data_iterator)
+            # TODO: remove this, only for reduced vocab_size benchmark
+            labels = labels % self.model_args.vocab_size
             loss = self.forward_backward_step(input_dict, labels)
             accumulated_losses.append(loss.detach())
 
