@@ -37,7 +37,7 @@ global_batch_size = 256
 data_parallel_replicate_degree = 1
 data_parallel_shard_degree = -1
 fsdp_reshard_after_forward = "default" # default / never / always
-tensor_parallel_degree = 1 # we are doing single rank with no actual TP, only reduce size by TP4
+tensor_parallel_degree = 4 # actual TP degree
 context_parallel_degree = 1
 
 [checkpoint]
