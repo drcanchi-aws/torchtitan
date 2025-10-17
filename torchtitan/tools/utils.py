@@ -15,7 +15,6 @@ import torch
 from torch._utils import _get_available_device_type, _get_device_module
 
 from torchtitan.tools.logging import logger
-import torch_neuron
 
 def has_cuda_capability(major: int, minor: int) -> bool:
     return torch.cuda.is_available() and torch.cuda.get_device_capability() >= (

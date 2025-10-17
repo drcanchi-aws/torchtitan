@@ -31,7 +31,6 @@ from torchtitan.tools.profiling import (
     maybe_enable_memory_snapshot,
     maybe_enable_profiling,
 )
-import torch_neuron
 
 class Trainer(torch.distributed.checkpoint.stateful.Stateful):
     # core configs
