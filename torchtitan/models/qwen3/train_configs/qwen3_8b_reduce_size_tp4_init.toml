@@ -6,7 +6,6 @@ description = "Qwen 3 8B training with reduced size by tp4"
 enable_profiling = true
 save_traces_folder = "profile_trace_qwen3_tp4_benchmark"
 profile_freq = 5
-warmup_steps=2
 
 [metrics]
 log_freq = 1
@@ -33,7 +32,7 @@ seq_len = 4096
 max_norm = 1.0  # grad norm clipping
 steps = 10
 dataset = "c4"
-global_batch_size = 1
+global_batch_size = 256
 [parallelism]
 data_parallel_replicate_degree = 1
 data_parallel_shard_degree = -1
@@ -42,11 +41,12 @@ tensor_parallel_degree = 1 # we are doing single rank with no actual TP, only re
 context_parallel_degree = 1
 
 [checkpoint]
-enable = false
-folder = "checkpoint"
-interval = 500
-last_save_model_only = false
-export_dtype = "float16"
+enable = true
+folder = "checkpoint-init-qwen3_8b_reduce_size_tp4"
+enable_first_step_checkpoint = true
+create_seed_checkpoint = true # for generating gpu checkpt
+interval = 1
+export_dtype = "float32"
 async_mode = "disabled" # ["disabled", "async", "async_with_pinned_mem"]
 
 [activation_checkpoint]
