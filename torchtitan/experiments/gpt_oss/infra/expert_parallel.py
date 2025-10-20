@@ -168,6 +168,7 @@ def expert_parallel(func: Callable) -> Callable:
                     num_ep_ranks,
                     x.shape[0] + experts_per_ep_rank * ALIGN_SIZE_M,
                     ALIGN_SIZE_M,
+                    use_cpu=True,
                 )
 
             x = torch.vstack((x, x.new_zeros((x.shape[-1]))))

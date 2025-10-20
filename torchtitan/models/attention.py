@@ -64,7 +64,7 @@ class FlexAttentionWrapper(torch.nn.Module):
         #    as the first argument, which will cause an error.
         #    `FlexAttentionWrapper._compiled_flex_attn` is correct.
         return FlexAttentionWrapper._compiled_flex_attn(
-            q, k, v, block_mask=block_mask, scale=scale
+            q, k, v, block_mask=block_mask, scale=scale, return_lse=True
         )
 
 

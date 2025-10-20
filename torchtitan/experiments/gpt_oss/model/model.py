@@ -8,9 +8,16 @@
 # LICENSE file in the root directory of this source tree.
 
 from torchtitan.protocols.model import AttentionMasksType
+from torchtitan.components.tokenizer import BaseTokenizer
 import torch
 from torch import nn
-from torchtitan.models.attention import build_attention
+from torch.nn.attention.flex_attention import BlockMask, and_masks
+from torchtitan.models.attention import (
+    create_attention_mask,
+    get_causal_mask_mod,
+    get_document_mask_mod,
+    FlexAttentionWrapper
+)
 from torchtitan.protocols.train_spec import ModelProtocol
 
 from .args import GptOssModelArgs
@@ -199,8 +206,8 @@ class Attention(nn.Module):
         v = values.transpose(1, 2).contiguous()
 
         if self.use_flex_attn:
-            assert isinstance(attention_masks, BlockMask), attention_masks
-            output = self.inner_attention(xq, xk, xv, block_mask=attention_masks)
+            assert isinstance(attention_mask, BlockMask), attention_mask
+            output, lse = self.inner_attention(q, k, v, block_mask=attention_mask)
         
         # # FlexAttention
         # output, aux_output = self.attn(
@@ -213,7 +220,7 @@ class Attention(nn.Module):
 
         # Apply attention sink rescaling: rescale by σ(lse - w[h])
         # This is mathematically equivalent to concatenating learnable sink weights
-        lse = aux_output.lse
+        # lse = aux_output.lse
         sink_scale = torch.sigmoid(lse - self.sinks.view(1, -1, 1)).unsqueeze(-1)
         output = output * sink_scale.to(output.dtype)
 
@@ -366,7 +373,7 @@ class GptOssModel(nn.Module, ModelProtocol):
         )
 
 
-    def forward(self, tokens: torch.Tensor):
+    def forward(self, tokens: torch.Tensor, attention_masks: AttentionMasksType | None = None):
         """
         Forward pass for the Transformer model.
 
@@ -379,7 +386,7 @@ class GptOssModel(nn.Module, ModelProtocol):
         h = self.tok_embeddings(tokens)
 
         for layer in self.layers.values():
-            h = layer(h, self.rope_cache)
+            h = layer(h, self.rope_cache, attention_masks)
         h = self.norm(h)
         output = self.output(h)
         return output

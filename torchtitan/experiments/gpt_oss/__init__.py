@@ -31,15 +31,17 @@ __all__ = [
 gptoss_configs = {
     "debugmodel": GptOssModelArgs(
         dim=256,
-        n_layers=4,
+        n_layers=2,
+        vocab_size=4096,
+        max_seq_len=4096,
         moe_args=MoEArgs(
-            num_experts=8,
+            num_experts=4,
             num_shared_experts=0,
             score_func="softmax",
             route_norm=False,
             route_scale=1.0,
             score_before_experts=False,
-            top_k=4,
+            top_k=2,
             use_grouped_mm=True,
             load_balance_coeff=1e-3,
         ),
@@ -78,7 +80,7 @@ gptoss_configs = {
 
 def get_train_spec() -> TrainSpec:
     return TrainSpec(
-        name="gpt_oss",
+        # name="gpt_oss",
         model_cls=GptOssModel,
         model_args=gptoss_configs,
         parallelize_fn=parallelize_gptoss,
