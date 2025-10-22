@@ -51,6 +51,7 @@ async_mode = "disabled" # ["disabled", "async", "async_with_pinned_mem"]
 [activation_checkpoint]
 mode = "selective"  # ["none", "selective", "full"]
 selective_ac_option = "op"  # "int" = ac every positive int layer or 'op', ac based on ops policy
+mm_checkpoint_frequency = 0
 
 [compile]
 enable=false

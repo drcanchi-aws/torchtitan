@@ -108,7 +108,7 @@ def _apply_op_sac(
                 meta[mm_count_key] += 1
             # Saves output of all compute ops, except every second mm
             to_save = func in op_sac_save_list and not (
-                func == torch.ops.aten.mm.default and meta[mm_count_key] % 2 == 0
+                func == torch.ops.aten.mm.default and ac_config.mm_checkpoint_frequency > 0 and meta[mm_count_key] % ac_config.mm_checkpoint_frequency == 0
             )
             return (
                 CheckpointPolicy.MUST_SAVE
