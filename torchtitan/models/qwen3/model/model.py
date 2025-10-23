@@ -491,7 +491,7 @@ class Qwen3Model(nn.Module, ModelProtocol):
         """
         # passthrough for nonexistent layers, allows easy configuration of pipeline parallel stages
         # TODO: remove this, only need this for reduced vocab_size benchmark
-        tokens = tokens % self.vocab_size
+        tokens = torch.clamp(tokens, min=0, max=self.vocab_size - 1)
         h = self.tok_embeddings(tokens) if self.tok_embeddings else tokens
 
         for layer in self.layers.values():

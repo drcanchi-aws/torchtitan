@@ -6,6 +6,7 @@ description = "Qwen 3 8B training with reduced size by tp4"
 enable_profiling = true
 save_traces_folder = "profile_trace_qwen3_tp4_benchmark"
 profile_freq = 5
+profiler_warmup = 0
 
 [metrics]
 log_freq = 1
