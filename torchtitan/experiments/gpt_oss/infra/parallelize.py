@@ -39,6 +39,7 @@ _op_sac_save_list = {
     torch.ops.aten._scaled_dot_product_flash_attention.default,
     torch.ops._c10d_functional.reduce_scatter_tensor.default,
     torch.ops._c10d_functional.all_to_all_single.default,
+    torch.ops.aten._scaled_dot_product_fused_attention_overrideable.default,
     # for low precision training, it's useful to always save
     # the result of max, since the absolute maximum is
     # used to compute the scaling factor for quantization.
