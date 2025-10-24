@@ -637,6 +637,11 @@ class ActivationCheckpoint:
     0.05 in {--job.dump_folder}/memory_budget_pareto folder. See an example here:
     https://github.com/pytorch/pytorch/pull/126320#discussion_r1625104015
     """
+    mm_checkpoint_frequency: int = 2
+    """
+    Frequency for matrix multiplication checkpointing in selective activation checkpointing.
+    Every nth mm operation will be recomputed instead of saved. Default is 2 (every other mm).
+    """
 
 
 @dataclass
