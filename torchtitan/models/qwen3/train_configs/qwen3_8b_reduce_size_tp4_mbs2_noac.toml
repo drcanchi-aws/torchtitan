@@ -1,11 +1,11 @@
 [job]
 dump_folder = "./outputs"
-description = "Qwen 3 8B training with full model actual tp4"
+description = "Qwen 3 8B training with reduced size by tp4"
 
 [profiling]
-enable_profiling = true
-save_traces_folder = "profile_trace_qwen3_tp4"
-profile_freq = 5
+enable_profiling = false
+save_traces_folder = "profile_trace_qwen3_tp4_benchmark"
+profile_freq = 1
 
 [metrics]
 log_freq = 1
@@ -14,7 +14,7 @@ save_tb_folder = "tb"
 
 [model]
 name = "qwen3"
-flavor = "8B"
+flavor = "8B-reduced-size-by-TP4"
 hf_assets_path = "./assets/hf/Qwen3-8B"
 # converters = ["float8"]
 
@@ -22,23 +22,22 @@ hf_assets_path = "./assets/hf/Qwen3-8B"
 name = "AdamW"
 lr = 3e-4
 eps = 1e-8
-implementation = "foreach"
 
 [lr_scheduler]
-warmup_steps = 2  # lr scheduler warm up, 20% total steps
+warmup_steps = 0  # lr scheduler warm up, 20% total steps
 
 [training]
-local_batch_size = 1
+local_batch_size = 2
 seq_len = 4096
 max_norm = 1.0  # grad norm clipping
 steps = 10
 dataset = "c4"
-global_batch_size = 1
+global_batch_size = 512
 [parallelism]
 data_parallel_replicate_degree = 1
 data_parallel_shard_degree = -1
 fsdp_reshard_after_forward = "default" # default / never / always
-tensor_parallel_degree = 4 # actual TP degree
+tensor_parallel_degree = 1 # we are doing single rank with no actual TP, only reduce size by TP4
 context_parallel_degree = 1
 
 [checkpoint]
@@ -50,9 +49,8 @@ export_dtype = "float16"
 async_mode = "disabled" # ["disabled", "async", "async_with_pinned_mem"]
 
 [activation_checkpoint]
-mode = "selective"  # ["none", "selective", "full"]
+mode = "none"  # ["none", "selective", "full"]
 selective_ac_option = "op"  # "int" = ac every positive int layer or 'op', ac based on ops policy
-mm_checkpoint_frequency = 0
 
 [compile]
 enable=false
