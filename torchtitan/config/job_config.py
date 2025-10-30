@@ -41,7 +41,7 @@ class Profiling:
     This is used to configure torch.profile.schedule.
     """
 
-    profiler_warmup: int = 3
+    profiler_warmup: int = 0
     """
     The number of warmup steps before the active step in each profiling cycle.
 
