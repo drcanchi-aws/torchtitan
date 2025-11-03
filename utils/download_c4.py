@@ -1,5 +1,11 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
 # download_c4.py
-from datasets import load_dataset, Dataset
+from datasets import load_dataset
 import os
 import json
 
@@ -8,9 +14,9 @@ print(f" Downloading first {N_SAMPLES} samples from C4...")
 
 # Use streaming to avoid downloading large files
 ds = load_dataset(
-    'allenai/c4', 
-    name='en', 
-    split='train', 
+    'allenai/c4',
+    name='en',
+    split='train',
     streaming=True
 )
 
@@ -27,4 +33,4 @@ with open(f'{base_dir}/train.jsonl', 'w') as f:
         f.write('\n')
 
 print(f"Downloaded {len(samples)} samples")
-print(f"Saved to: ./datasets/c4_local/train.jsonl")
+print(f"Saved to: {base_dir}/train.jsonl")
