@@ -46,7 +46,7 @@ class FlexAttentionWrapper(torch.nn.Module):
     """
 
     _compiled_flex_attn: ClassVar[Callable] = torch.compile(
-        flex_attention, mode="max-autotune-no-cudagraphs"
+        flex_attention, mode="max-autotune-no-cudagraphs", backend='eager'
     )
 
     def forward(
@@ -215,7 +215,7 @@ def get_sliding_window_mask_mod(window_size: int) -> _mask_mod_signature:
     return sliding_window_mod
 
 
-_compiled_create_block_mask = torch.compile(create_block_mask)
+_compiled_create_block_mask = torch.compile(create_block_mask, backend='eager')
 
 
 @functools.lru_cache(4)
