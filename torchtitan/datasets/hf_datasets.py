@@ -54,7 +54,7 @@ DATASETS = {
         sample_processor=_process_c4_text,
     ),
     "c4_local": DatasetConfig(
-        path="/mnt/nfs/slabhs/fp8/eager/datasets/c4_local_10_samples/train.jsonl",
+        path="<PATH>/train.jsonl",
         loader=partial(_load_local_jsonl, split="train"),
         sample_processor=_process_c4_text,
     )
