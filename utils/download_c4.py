@@ -20,13 +20,12 @@ ds = load_dataset("allenai/c4", name="en", split="train", streaming=True)
 samples = list(ds.take(N_SAMPLES))
 
 # Save as jsonl for TorchTitan compatibility
-base_dir = f"./datasets/c4_local_{N_SAMPLES}_samples"
-os.makedirs(base_dir, exist_ok=True)
-
-with open(f"{base_dir}/train.jsonl", "w") as f:
+DATASET_BASE_PATH = os.getenv("DATASET_BASE_PATH", os.getcwd())
+os.makedirs(DATASET_BASE_PATH, exist_ok=True)
+with open(f"{DATASET_BASE_PATH}/train.jsonl", "w") as f:
     for sample in samples:
         json.dump(sample, f)
         f.write("\n")
 
 print(f"Downloaded {len(samples)} samples")
-print(f"Saved to: {base_dir}/train.jsonl")
+print(f"Saved to: {DATASET_BASE_PATH}/train.jsonl")

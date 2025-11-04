@@ -4,6 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
 from functools import partial
 from typing import Any, Callable
 
@@ -54,7 +55,7 @@ DATASETS = {
         sample_processor=_process_c4_text,
     ),
     "c4_local": DatasetConfig(
-        path="<PATH>/train.jsonl",
+        path=f"{os.getenv('DATASET_BASE_PATH', os.getcwd())}/train.jsonl",
         loader=partial(_load_local_jsonl, split="train"),
         sample_processor=_process_c4_text,
     ),
