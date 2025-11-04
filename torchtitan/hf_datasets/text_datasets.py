@@ -31,6 +31,11 @@ def _process_c4_text(sample: dict[str, Any]) -> str:
     return sample["text"]
 
 
+def _load_local_jsonl(dataset_path: str, split: str):
+    """Load local JSONL dataset."""
+    return load_dataset("json", data_files=dataset_path, split=split, streaming=True)
+
+
 # Add your dataset here - more information at docs/datasets.md
 DATASETS = {
     "c4": DatasetConfig(
@@ -46,6 +51,11 @@ DATASETS = {
     "c4_validation": DatasetConfig(
         path="allenai/c4",
         loader=partial(_load_c4_dataset, split="validation"),
+        sample_processor=_process_c4_text,
+    ),
+    "c4_local": DatasetConfig(
+        path="<PATH>/train.jsonl",
+        loader=partial(_load_local_jsonl, split="train"),
         sample_processor=_process_c4_text,
     ),
 }
