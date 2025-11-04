@@ -15,9 +15,8 @@ export_dtype = "float32"
 async_mode = "disabled" # ["disabled", "async", "async_with_pinned_mem"]
 ```
 
-```sh
-pip3 install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu126 --force-reinstall
-pip install --pre torchtitan --index-url https://download.pytorch.org/whl/nightly/cu126
-```
-
 2. Save step0/seed ckpt: https://github.com/drcanchi-aws/torchtitan/blob/33ec0ce4475e6c1cadee08cfdb5fb814b63091c7/docs/checkpoint.md?plain=1#L55
+
+```bash
+./run_neuron_train.sh --checkpoint.enable --checkpoint.create_seed_checkpoint
+```
