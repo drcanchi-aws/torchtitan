@@ -57,7 +57,7 @@ class Profiling:
     This is used to configure torch.profile.schedule.
     """
 
-    profiler_warmup: int = 3
+    profiler_warmup: int = 0
     """
     The number of warmup steps before the active step in each profiling cycle.
 
@@ -628,6 +628,11 @@ class ActivationCheckpoint:
     memory tradeoffs for all memory budget values from 0 to 1 in increments of
     0.05 in {--job.dump_folder}/memory_budget_pareto folder. See an example here:
     https://github.com/pytorch/pytorch/pull/126320#discussion_r1625104015
+    """
+    mm_checkpoint_frequency: int = 2
+    """
+    Frequency for matrix multiplication checkpointing in selective activation checkpointing.
+    Every nth mm operation will be recomputed instead of saved. Default is 2 (every other mm).
     """
 
     preserve_rng_state: bool = False

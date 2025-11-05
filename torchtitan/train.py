@@ -11,8 +11,35 @@ from datetime import timedelta
 from typing import Any, Generator, Iterable, Optional
 
 import torch
-
+import torch_neuron
 from torch.distributed.elastic.multiprocessing.errors import record
+
+# Disable dynamo completely before any imports
+os.environ['TORCHDYNAMO_DISABLE'] = '1'
+torch._dynamo.config.disable = True
+ 
+# Import the original function
+from torch.nn.attention.flex_attention import create_block_mask as _original_create_block_mask
+from tests.utils.neuron_test_utils import assert_op_runs_on_neuron, track_neuron_ops
+ 
+# Create a wrapper that defaults to NEURON instead of CUDA
+def cpu_default_create_block_mask(
+    mask_mod,
+    B,
+    H,
+    Q_LEN,
+    KV_LEN,
+    device="neuron", 
+    BLOCK_SIZE=128,
+    _compile=False,
+):
+    return _original_create_block_mask(
+        mask_mod, B, H, Q_LEN, KV_LEN, device, BLOCK_SIZE, _compile
+    )
+ 
+# Monkey patch before importing torchtitan
+import torch.nn.attention.flex_attention
+torch.nn.attention.flex_attention.create_block_mask = cpu_default_create_block_mask
 
 import torchtitan.protocols.train_spec as train_spec_module
 from torchtitan.components.checkpoint import CheckpointManager
@@ -32,7 +59,6 @@ from torchtitan.tools.profiling import (
     maybe_enable_memory_snapshot,
     maybe_enable_profiling,
 )
-
 
 class Trainer(torch.distributed.checkpoint.stateful.Stateful):
     # core configs
@@ -506,6 +532,8 @@ class Trainer(torch.distributed.checkpoint.stateful.Stateful):
         # entire step will not be executed.
         for _microbatch in range(self.gradient_accumulation_steps):
             input_dict, labels = next(data_iterator)
+            # TODO: remove this, only for reduced vocab_size benchmark
+            labels = labels % self.model_args.vocab_size
             loss = self.forward_backward_step(input_dict, labels)
             accumulated_losses.append(loss.detach())
 
