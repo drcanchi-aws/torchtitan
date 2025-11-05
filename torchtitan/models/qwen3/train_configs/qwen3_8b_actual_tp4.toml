@@ -22,7 +22,6 @@ hf_assets_path = "./assets/hf/Qwen3-8B"
 name = "AdamW"
 lr = 3e-4
 eps = 1e-8
-implementation = "foreach"
 
 [lr_scheduler]
 warmup_steps = 2  # lr scheduler warm up, 20% total steps
