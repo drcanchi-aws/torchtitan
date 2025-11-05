@@ -14,33 +14,6 @@ import torch
 import torch_neuron
 from torch.distributed.elastic.multiprocessing.errors import record
 
-# Disable dynamo completely before any imports
-os.environ['TORCHDYNAMO_DISABLE'] = '1'
-torch._dynamo.config.disable = True
- 
-# Import the original function
-from torch.nn.attention.flex_attention import create_block_mask as _original_create_block_mask
-from tests.utils.neuron_test_utils import assert_op_runs_on_neuron, track_neuron_ops
- 
-# Create a wrapper that defaults to NEURON instead of CUDA
-def cpu_default_create_block_mask(
-    mask_mod,
-    B,
-    H,
-    Q_LEN,
-    KV_LEN,
-    device="neuron", 
-    BLOCK_SIZE=128,
-    _compile=False,
-):
-    return _original_create_block_mask(
-        mask_mod, B, H, Q_LEN, KV_LEN, device, BLOCK_SIZE, _compile
-    )
- 
-# Monkey patch before importing torchtitan
-import torch.nn.attention.flex_attention
-torch.nn.attention.flex_attention.create_block_mask = cpu_default_create_block_mask
-
 import torchtitan.protocols.train_spec as train_spec_module
 from torchtitan.components.checkpoint import CheckpointManager
 from torchtitan.components.dataloader import DataloaderExhaustedError
@@ -59,6 +32,7 @@ from torchtitan.tools.profiling import (
     maybe_enable_memory_snapshot,
     maybe_enable_profiling,
 )
+
 
 class Trainer(torch.distributed.checkpoint.stateful.Stateful):
     # core configs
