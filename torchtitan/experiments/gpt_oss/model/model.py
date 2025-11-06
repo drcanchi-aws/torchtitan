@@ -14,6 +14,7 @@ from torchtitan.models.attention import (
     get_causal_mask_mod,
     get_document_mask_mod,
     get_sliding_window_mask_mod,
+    ScaledDotProductAttentionWrapper,
 )
 from torchtitan.protocols.model import AttentionMasksType
 from torchtitan.protocols.train_spec import ModelProtocol
@@ -141,7 +142,7 @@ class Attention(nn.Module):
             bias=True,
         )
         self.sinks = nn.Parameter(torch.empty(model_args.n_heads))
-        self.inner_attention = FlexAttentionWrapper()
+        self.inner_attention = ScaledDotProductAttentionWrapper()
 
     def init_weights(self, init_std: float):
         linear_list = [
@@ -190,15 +191,15 @@ class Attention(nn.Module):
         xk = keys.transpose(1, 2).contiguous()
         xv = values.transpose(1, 2).contiguous()
 
-        assert isinstance(attention_masks, BlockMask), attention_masks
-        output, lse = self.inner_attention(
-            xq, xk, xv, block_mask=attention_masks, scale=None, return_lse=True
+        # assert isinstance(attention_masks, BlockMask), attention_masks
+        output = self.inner_attention(
+            xq, xk, xv
         )
 
         # Apply attention sink rescaling: rescale by σ(lse - w[h])
         # This is mathematically equivalent to concatenating learnable sink weights
-        sink_scale = torch.sigmoid(lse - self.sinks.view(1, -1, 1)).unsqueeze(-1)
-        output = output * sink_scale.to(output.dtype)
+        # sink_scale = torch.sigmoid(lse - self.sinks.view(1, -1, 1)).unsqueeze(-1)
+        # output = output * sink_scale.to(output.dtype)
 
         output = output.transpose(1, 2).contiguous()  # (B, H, T, D) -> (B, T, H, D)
 
@@ -249,13 +250,13 @@ class TransformerBlock(nn.Module):
             torch.Tensor: Output tensor with the same shape as the input.
         """
         # Extract the appropriate mask for this layer
-        if self.use_sliding_attention:
-            layer_mask = attention_masks.get("sliding_window_mask", None)
-        else:
-            layer_mask = attention_masks.get("basic_mask", None)
-        assert layer_mask is not None
+        # if self.use_sliding_attention:
+        #     layer_mask = attention_masks.get("sliding_window_mask", None)
+        # else:
+        #     layer_mask = attention_masks.get("basic_mask", None)
+        # assert layer_mask is not None
 
-        x = x + self.attention(self.attention_norm(x), rope_cache, layer_mask)
+        x = x + self.attention(self.attention_norm(x), rope_cache, None)
         x = x + self.moe(self.ffn_norm(x))
         return x
 
@@ -373,7 +374,7 @@ class GptOssModel(nn.Module, ModelProtocol):
     def forward(
         self,
         tokens: torch.Tensor,
-        attention_masks: AttentionMasksType,
+        attention_masks: AttentionMasksType = None,
     ):
         """
         Forward pass for the Transformer model.

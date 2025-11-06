@@ -44,6 +44,7 @@ gptoss_configs = {
         vocab_size=8192,
         n_heads=8,
         n_kv_heads=2,
+        use_flex_attn=False,
     ),
     "20b": GptOssModelArgs(
         n_layers=24,
