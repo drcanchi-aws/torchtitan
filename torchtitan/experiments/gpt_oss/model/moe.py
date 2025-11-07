@@ -81,7 +81,8 @@ def indices_padding_wrapper(func: Callable) -> Callable:
 
 
 def swiglu(x, alpha: float = 1.702, limit: float = 7.0):
-    x_glu, x_linear = x[..., ::2], x[..., 1::2]
+    dim = x.shape[-1] // 2
+    x_glu, x_linear = x[..., :dim], x[..., dim:]
     # Clamp the input values
     x_glu = x_glu.clamp(min=None, max=limit)
     x_linear = x_linear.clamp(min=-limit, max=limit)
