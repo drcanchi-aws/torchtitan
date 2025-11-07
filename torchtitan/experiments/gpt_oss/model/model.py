@@ -181,7 +181,7 @@ class Attention(nn.Module):
         k = self.wk(x).view(hidden_shape)
         v = self.wv(x).view(hidden_shape)
 
-        q, k = apply_rotary_emb(q, k, rope_cache)
+        # q, k = apply_rotary_emb(q, k, rope_cache)
 
         # repeat k/v heads if n_kv_heads < n_heads
         keys = repeat_kv(k, self.n_rep)
