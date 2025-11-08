@@ -346,6 +346,7 @@ class TokenReorderer(nn.Module):
 
         top_scores_experts_sorted = top_scores.view(-1)[token_indices_experts_sorted]
         token_indices_experts_sorted = token_indices_experts_sorted // self.top_k
+        token_indices_experts_sorted = token_indices_experts_sorted.to(torch.int32)
 
         return (
             top_scores_experts_sorted,
