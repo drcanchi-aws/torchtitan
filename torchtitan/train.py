@@ -507,7 +507,7 @@ class Trainer(torch.distributed.checkpoint.stateful.Stateful):
         for _microbatch in range(self.gradient_accumulation_steps):
             input_dict, labels = next(data_iterator)
             # TODO: remove this, only for reduced vocab_size benchmark
-            labels = labels % self.model_args.vocab_size
+            labels = torch.clamp(labels, min=0, max=self.model_args.vocab_size - 1)
             loss = self.forward_backward_step(input_dict, labels)
             accumulated_losses.append(loss.detach())
 
