@@ -27,7 +27,6 @@ __all__ = [
 
 gptoss_configs = {
     "debugmodel": GptOssModelArgs(
-        # dim=256,
         n_layers=1,
         moe_args=MoEArgs(
             num_experts=32,
@@ -42,8 +41,9 @@ gptoss_configs = {
         ),
         attn_mask_type="causal",
         vocab_size=8192,
-        # n_heads=8,
-        # n_kv_heads=2,
+        # n_heads=64//4,
+        # n_kv_heads=8//4,
+        # moe_inter_dim=2880//4,
         use_flex_attn=False,
     ),
     "20b": GptOssModelArgs(
