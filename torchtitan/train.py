@@ -11,7 +11,7 @@ from datetime import timedelta
 from typing import Any, Generator, Iterable, Optional
 
 import torch
-
+import torch_neuron
 from torch.distributed.elastic.multiprocessing.errors import record
 
 import torchtitan.protocols.train_spec as train_spec_module
@@ -506,6 +506,8 @@ class Trainer(torch.distributed.checkpoint.stateful.Stateful):
         # entire step will not be executed.
         for _microbatch in range(self.gradient_accumulation_steps):
             input_dict, labels = next(data_iterator)
+            # TODO: remove this, only for reduced vocab_size benchmark
+            labels = torch.clamp(labels, min=0, max=self.model_args.vocab_size - 1)
             loss = self.forward_backward_step(input_dict, labels)
             accumulated_losses.append(loss.detach())
 

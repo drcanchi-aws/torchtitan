@@ -232,8 +232,8 @@ class Attention(nn.Module):
         else:
             assert attention_masks is None
             output = self.inner_attention(xq, xk, xv)
-
-        output = output.transpose(
+        # TODO: remove this, due to incorrect sdpa output memory layout under TP
+        output = output.contiguous().transpose(
             1, 2
         ).contiguous()  # (bs, seqlen, n_local_heads, head_dim)
 
@@ -485,6 +485,8 @@ class Qwen3Model(nn.Module, ModelProtocol):
 
         """
         # passthrough for nonexistent layers, allows easy configuration of pipeline parallel stages
+        # TODO: remove this, only need this for reduced vocab_size benchmark
+        tokens = torch.clamp(tokens, min=0, max=self.vocab_size - 1)
         h = self.tok_embeddings(tokens) if self.tok_embeddings else tokens
 
         for layer in self.layers.values():
