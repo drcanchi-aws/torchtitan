@@ -220,7 +220,7 @@ class Attention(nn.Module):
 
         # Apply rotary embedding
         # xq, xk = apply_rotary_emb(xq, xk, rope_cache)
-        xq, xk = apply_rope_kernel(xq, xk, rope_cache)
+        xq, xk = apply_rope_kernel(apply_rotary_emb, xq, xk, rope_cache)
 
         # repeat k/v heads if n_kv_heads < n_heads
         keys = repeat_kv(xk, self.n_rep)  # (bs, seqlen, n_local_heads, head_dim)

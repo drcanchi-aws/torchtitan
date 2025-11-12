@@ -1,8 +1,14 @@
+import logging
+import os
 import torch
 from torch_neuron import TorchNeuronNKIKernel
 from torch_neuron.utils import get_logical_neuron_cores
 
 import neuronxcc.nki.language as nl
+
+from .logging import warn_once
+
+logger = logging.getLogger()
 
 
 # check for kernel in compiler package
@@ -87,10 +93,14 @@ def apply_rope_kernel(original_rope, xq, xk, rope_cache):
     xk: b, s, h_k, d
     rope_cache: s, d*2
     """
-    
-    try:
-        # transpose to B, H, S, D
-        xq_out, xk_out = RoPEFunctionNKI.apply(xq.transpose(1, 2), xk.transpose(1, 2), rope_cache)
-        return xq_out.transpose(1, 2).contiguous(), xk_out.transpose(1, 2).contiguous()
-    except:
-        return original_rope(xq, xk, rope_cache)
+    if nki_apply_rotary_embedding_with_cache is not None and not os.getenv('DISABLE_ROPE_KERNEL', False):
+        try:
+            # transpose to B, H, S, D
+            xq_out, xk_out = RoPEFunctionNKI.apply(xq.transpose(1, 2), xk.transpose(1, 2), rope_cache)
+            return xq_out.transpose(1, 2).contiguous(), xk_out.transpose(1, 2).contiguous()
+        except Exception as e:
+            warn_once(logger, "Failed to use NKI-accelerated RoPE kernel. Falling back to original RoPE kernel.")
+            warn_once(logger, f"failed with {e}")
+    else:
+        warn_once(logger, "NKI-accelerated RoPE kernel not available")
+    return original_rope(xq, xk, rope_cache)
