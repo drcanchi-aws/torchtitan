@@ -22,7 +22,7 @@ from .infra.parallelize import parallelize_qwen3
 #from .model_MXFP8.state_dict_adapter import Qwen3StateDictAdapter
 
 from .model.args import Qwen3ModelArgs
-from .model.model_MXFP8 import Qwen3Model
+from .model.model import Qwen3Model
 from .model.state_dict_adapter import Qwen3StateDictAdapter
 
 __all__ = [
