@@ -16,8 +16,13 @@ from torchtitan.models.moe import MoEArgs
 from torchtitan.protocols.train_spec import TrainSpec
 
 from .infra.parallelize import parallelize_qwen3
+
+#from .model_MXFP8.args import Qwen3ModelArgs
+#from .model_MXFP8.model import Qwen3Model
+#from .model_MXFP8.state_dict_adapter import Qwen3StateDictAdapter
+
 from .model.args import Qwen3ModelArgs
-from .model.model import Qwen3Model
+from .model.model_MXFP8 import Qwen3Model
 from .model.state_dict_adapter import Qwen3StateDictAdapter
 
 __all__ = [
@@ -83,27 +88,39 @@ qwen3_configs = {
         enable_weight_tying=True,
     ),
     "8B": Qwen3ModelArgs(
-        vocab_size=151936//9, # map to the correct scale of 4 decoder layers
+        vocab_size=151936,
         max_seq_len=4096,
         head_dim=128,
         dim=4096,
-        n_layers=4,
+        n_layers=36,
         n_heads=32,
         n_kv_heads=8,
         qk_norm=True,
         hidden_dim=12288,
         rope_theta=1000000,
     ),
-    "8B-TP1": Qwen3ModelArgs(
-        vocab_size=151936//64,
+    "8B-noGQA": Qwen3ModelArgs(
+        vocab_size=151936,
         max_seq_len=4096,
-        head_dim=128,
+        head_dim=4096,
         dim=4096,
-        n_layers=4,
-        n_heads=32,
-        n_kv_heads=8,
+        n_layers=36,
+        n_heads=1,
+        n_kv_heads=1,
         qk_norm=True,
         hidden_dim=12288,
+        rope_theta=1000000,
+    ),
+    "8B-reduced-size-by-TP4-noGQA": Qwen3ModelArgs(
+        vocab_size=4096, # ~=151936/TP4/(layers 36//4),
+        max_seq_len=4096,
+        head_dim=4096,
+        dim=4096,
+        n_layers=4,
+        n_heads=1,
+        n_kv_heads=1,
+        qk_norm=True,
+        hidden_dim=3072,
         rope_theta=1000000,
     ),
     "8B-reduced-size-by-TP4": Qwen3ModelArgs(

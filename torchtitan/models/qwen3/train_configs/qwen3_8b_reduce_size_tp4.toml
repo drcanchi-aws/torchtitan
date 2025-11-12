@@ -3,19 +3,20 @@ dump_folder = "./outputs"
 description = "Qwen 3 8B training with reduced size by tp4"
 
 [profiling]
-enable_profiling = true
+enable_profiling = false
 save_traces_folder = "profile_trace_qwen3_tp4_benchmark"
 profile_freq = 5
 
 [metrics]
 log_freq = 1
-enable_tensorboard = false
+enable_tensorboard = true
 save_tb_folder = "tb"
 
 [model]
 name = "qwen3"
-flavor = "8B-reduced-size-by-TP4"
+flavor = "8B-reduced-size-by-TP4-noGQA"
 hf_assets_path = "./assets/hf/Qwen3-8B"
+mxfp8_qkv = true
 # converters = ["float8"]
 
 [optimizer]
@@ -28,11 +29,12 @@ warmup_steps = 2  # lr scheduler warm up, 20% total steps
 
 [training]
 local_batch_size = 1
-seq_len = 4096
+seq_len = 4096 # SLABHS converted to 1k from 4k to get around SBUF OOM
 max_norm = 1.0  # grad norm clipping
-steps = 10
-dataset = "c4"
-global_batch_size = 256
+steps = 1000
+dataset = "c4_local_4ks" # SLABHS converted to use local c4
+global_batch_size = 1 # SLABHS converted from 256 to 1 to make grad_accum=1
+
 [parallelism]
 data_parallel_replicate_degree = 1
 data_parallel_shard_degree = -1
@@ -41,15 +43,18 @@ tensor_parallel_degree = 1 # we are doing single rank with no actual TP, only re
 context_parallel_degree = 1
 
 [checkpoint]
-enable = false
-folder = "checkpoint"
-interval = 500
+enable = true
+# initial_load_path = "outputs/checkpoint-init-qwen3_8b_reduce_size_tp4/step-0"
+initial_load_model_only = true
+folder = "checkpoint-train-qwen3_8b_rtp4-gbs1"
+interval = 20000
 last_save_model_only = false
-export_dtype = "float16"
+export_dtype = "float32"
 async_mode = "disabled" # ["disabled", "async", "async_with_pinned_mem"]
+load_only = true
 
 [activation_checkpoint]
-mode = "selective"  # ["none", "selective", "full"]
+mode = "none"  # ["none", "selective", "full"]
 selective_ac_option = "op"  # "int" = ac every positive int layer or 'op', ac based on ops policy
 mm_checkpoint_frequency = 0
 

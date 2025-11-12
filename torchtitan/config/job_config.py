@@ -41,7 +41,7 @@ class Profiling:
     This is used to configure torch.profile.schedule.
     """
 
-    profiler_warmup: int = 0
+    profiler_warmup: int = 3
     """
     The number of warmup steps before the active step in each profiling cycle.
 
@@ -113,6 +113,9 @@ class Model:
     If true, model definition will be printed to stdout after all model
     converters have been applied.
     """
+
+    mxfp8_qkv: bool = False
+    """Enable MXFP8 for QKV projections"""
 
 
 @dataclass

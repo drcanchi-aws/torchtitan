@@ -132,8 +132,9 @@ class Attention(nn.Module):
 
     """
 
-    def __init__(self, model_args: Qwen3ModelArgs):
+    def __init__(self, model_args: Qwen3ModelArgs, layer_id: int = 0):
         super().__init__()
+        self.layer_id = layer_id
         self.n_heads = model_args.n_heads
         self.n_kv_heads = (
             model_args.n_heads
@@ -144,6 +145,7 @@ class Attention(nn.Module):
         self.head_dim = model_args.head_dim
         self.scaling = self.head_dim**-0.5
         self.use_flex_attn = getattr(model_args, "use_flex_attn", False)
+        self.mxfp8_qkv = getattr(model_args, "mxfp8_qkv", False)
 
         # RMSNorm added here to the here to include the q-k norm
         # This is one of the main differences between Llama3 and Qwen3
@@ -159,10 +161,15 @@ class Attention(nn.Module):
             self.k_norm = None
 
         self.wq = nn.Linear(
-            model_args.dim, model_args.n_heads * self.head_dim, bias=False
+            model_args.dim, model_args.n_heads * self.head_dim, bias=True
         )
-        self.wk = nn.Linear(model_args.dim, self.n_kv_heads * self.head_dim, bias=False)
-        self.wv = nn.Linear(model_args.dim, self.n_kv_heads * self.head_dim, bias=False)
+        self.wk = nn.Linear(model_args.dim, self.n_kv_heads * self.head_dim, bias=True)
+        self.wv = nn.Linear(model_args.dim, self.n_kv_heads * self.head_dim, bias=True)
+
+        nn.init.zeros_(self.wq.bias)
+        nn.init.zeros_(self.wk.bias)
+        nn.init.zeros_(self.wv.bias)
+
         self.wo = nn.Linear(
             model_args.n_heads * self.head_dim, model_args.dim, bias=False
         )
@@ -199,7 +206,17 @@ class Attention(nn.Module):
         """
 
         bs, seqlen, _ = x.shape
-        xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
+
+        # print(f"SLABHS 0 : {x.shape=}") # [1, 4096, 4096]
+        # print(f"SLABHS 1 : {self.wq.weight.shape=}") # [4096, 4096]
+
+        if self.mxfp8_qkv:
+            from .torch_neuron_mxfp8_kernels.mxfp8_linear_kernel import mxfp8_linear
+            xq = mxfp8_linear(x.view(bs*seqlen, -1), self.wq.weight, self.wq.bias)
+            xk = mxfp8_linear(x.view(bs*seqlen, -1), self.wk.weight, self.wk.bias)
+            xv = mxfp8_linear(x.view(bs*seqlen, -1), self.wv.weight, self.wv.bias)
+        else:
+            xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
         # Use -1 instead of `n_heads` (or `n_kv_heads`) to infer the actual
         # local heads from sizes of xq, xk, and xv as TP may have sharded them
@@ -232,8 +249,8 @@ class Attention(nn.Module):
         else:
             assert attention_masks is None
             output = self.inner_attention(xq, xk, xv)
-        # TODO: remove this, due to incorrect sdpa output memory layout under TP
-        output = output.contiguous().transpose(
+
+        output = output.transpose(
             1, 2
         ).contiguous()  # (bs, seqlen, n_local_heads, head_dim)
 
@@ -304,7 +321,7 @@ class TransformerBlock(nn.Module):
         self.n_heads = model_args.n_heads
         self.dim = model_args.dim
 
-        self.attention = Attention(model_args)
+        self.attention = Attention(model_args, layer_id)
 
         self.moe_enabled = model_args.moe_enabled
         if self.moe_enabled:
@@ -491,6 +508,7 @@ class Qwen3Model(nn.Module, ModelProtocol):
         """
         # passthrough for nonexistent layers, allows easy configuration of pipeline parallel stages
         # TODO: remove this, only need this for reduced vocab_size benchmark
+        # tokens = tokens % self.vocab_size - 1
         tokens = torch.clamp(tokens, min=0, max=self.vocab_size - 1)
         h = self.tok_embeddings(tokens) if self.tok_embeddings else tokens
 

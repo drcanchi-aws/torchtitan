@@ -41,6 +41,7 @@ class Qwen3ModelArgs(BaseModelArgs):
     eos_id: int = 151645
 
     enable_weight_tying: bool = False
+    mxfp8_qkv: bool = False
 
     # MoE params
     moe_enabled: bool = False
@@ -58,6 +59,7 @@ class Qwen3ModelArgs(BaseModelArgs):
         self.moe_args._debug_force_load_balance = (
             job_config.training.debug_moe_force_load_balance
         )
+        self.mxfp8_qkv = job_config.model.mxfp8_qkv
 
     def get_nparams_and_flops(
         self, model: nn.Module, seq_len: int
