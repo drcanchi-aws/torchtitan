@@ -1,0 +1,68 @@
+[job]
+dump_folder = "./outputs"
+description = "Qwen 3 8B training with full model tp4"
+
+[profiling]
+enable_profiling = false
+save_traces_folder = "profile_trace_qwen3_tp4_golden"
+profile_freq = 5
+
+[metrics]
+log_freq = 1
+enable_tensorboard = true
+save_tb_folder = "tb"
+
+[model]
+name = "qwen3"
+flavor = "8B-noGQA"
+hf_assets_path = "./assets/hf/Qwen3-8B"
+# mxfp8_qkv = true
+# converters = ["float8"]
+
+[optimizer]
+name = "AdamW"
+lr = 3e-4
+eps = 1e-8
+
+[lr_scheduler]
+warmup_steps = 2  # lr scheduler warm up, 20% total steps
+
+[training]
+local_batch_size = 1
+seq_len = 4096
+max_norm = 1.0  # grad norm clipping
+steps = 100
+dataset = "c4_local_4ks"
+global_batch_size = 1
+seed = 1234
+deterministic = true
+
+[parallelism]
+data_parallel_replicate_degree = 1
+data_parallel_shard_degree = -1
+fsdp_reshard_after_forward = "default" # default / never / always
+tensor_parallel_degree = 4 # actual TP degree
+context_parallel_degree = 1
+
+[checkpoint]
+enable = false
+initial_load_model_only = true
+folder = "/mnt/local_ssd/slabhs/ckpt/checkpoint-train-qwen3_8b_tp4-gbs1-QKVbiasTrue"
+interval = 20000
+last_save_model_only = true
+export_dtype = "float32"
+async_mode = "disabled" # ["disabled", "async", "async_with_pinned_mem"]
+load_only = true
+
+[activation_checkpoint]
+mode = "none"  # ["none", "selective", "full"]
+selective_ac_option = "op"  # "int" = ac every positive int layer or 'op', ac based on ops policy
+
+[compile]
+enable=false
+components = ["model", "loss"]
+
+[quantize.linear.float8]
+enable_fsdp_float8_all_gather = false
+precompute_float8_dynamic_scale_for_fsdp = false
+filter_fqns = ["output"]

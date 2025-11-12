@@ -28,6 +28,6 @@ TRAIN_FILE="torchtitan.train"
 # srun --export=ALL torchrun --nnodes 1 --nproc_per_node 1 --rdzv_id 101 --rdzv_backend c10d --rdzv_endpoint "localhost:29500" -m ${TRAIN_FILE} --job.config_file ${CONFIG_FILE} 2>&1 | tee ./qwen_8b.log
 
 # Register ADDMM NKI MXFP8 / XLA IMPL
-# export NEURON_ADDMM_MXFP8=1
+export NEURON_ADDMM_MXFP8=1
 
 torchrun --nnodes 1 --nproc_per_node $NEURON_RT_NUM_CORES --rdzv_id 101 --rdzv_backend c10d --rdzv_endpoint "localhost:29500" -m ${TRAIN_FILE} --job.config_file ${CONFIG_FILE} "$@" 2>&1 | tee ./test.log
