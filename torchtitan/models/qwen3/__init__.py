@@ -83,18 +83,18 @@ qwen3_args = {
         enable_weight_tying=True,
     ),
     "8B": Qwen3ModelArgs(
-        vocab_size=16384, # map to the correct scale of 4 decoder layers
+        vocab_size=151936,
         max_seq_len=4096,
         head_dim=128,
         dim=4096,
-        n_layers=4,
+        n_layers=36,
         n_heads=32,
         n_kv_heads=8,
         qk_norm=True,
         hidden_dim=12288,
         rope_theta=1000000,
     ),
-    "8B-TP1": Qwen3ModelArgs(
+    "8B-4layers": Qwen3ModelArgs(
         vocab_size=16384, # map to the correct scale of 4 decoder layers
         max_seq_len=4096,
         head_dim=128,

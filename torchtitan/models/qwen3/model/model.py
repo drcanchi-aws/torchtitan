@@ -232,8 +232,7 @@ class Attention(nn.Module):
         else:
             assert attention_masks is None
             output = self.inner_attention(xq, xk, xv)
-        # TODO: remove this, due to incorrect sdpa output memory layout under TP
-        output = output.contiguous().transpose(
+        output = output.transpose(
             1, 2
         ).contiguous()  # (bs, seqlen, n_local_heads, head_dim)
 

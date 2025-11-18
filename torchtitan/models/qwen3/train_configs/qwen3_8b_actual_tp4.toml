@@ -1,6 +1,6 @@
 [job]
 dump_folder = "./outputs"
-description = "Qwen 3 8B training with full model actual tp4"
+description = "Qwen 3 8B training with 4 layers model actual tp4"
 
 [profiling]
 enable_profiling = true
@@ -14,7 +14,7 @@ save_tb_folder = "tb"
 
 [model]
 name = "qwen3"
-flavor = "8B"
+flavor = "8B-4layers"
 hf_assets_path = "./assets/hf/Qwen3-8B"
 # converters = ["float8"]
 
