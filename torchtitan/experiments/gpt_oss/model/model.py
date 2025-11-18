@@ -19,6 +19,9 @@ from torchtitan.models.attention import (
 from torchtitan.protocols.model import AttentionMasksType
 from torchtitan.protocols.train_spec import ModelProtocol
 
+# RoPE nki kernel
+from torchtitan.tools.neuron_kernels import apply_rope_kernel
+
 from .args import GptOssModelArgs
 from .moe import GptOssMoE
 
@@ -182,6 +185,7 @@ class Attention(nn.Module):
         v = self.wv(x).view(hidden_shape)
 
         # q, k = apply_rotary_emb(q, k, rope_cache)
+        q, k = apply_rope_kernel(apply_rotary_emb, xq, xk, rope_cache)
 
         # repeat k/v heads if n_kv_heads < n_heads
         keys = repeat_kv(k, self.n_rep)
