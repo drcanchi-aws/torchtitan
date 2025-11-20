@@ -5,16 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from dataclasses import dataclass, field
-from typing import Literal
 
 
 @dataclass
 class Compile:
-    graph_passes: Literal["auto_bucketing", "transformer_block_bucketing"] | None = None
-    """
-    Bucketing and overlapping passes in simplefsdp. Additional passes include:
-        auto_bucketing, transformer_block_bucketing
-    """
+    model_backend_override: str | None = None
+    """Override backend to compile in simplefsdp. Additional backend includes aot_eager_autobucketing"""
 
 
 @dataclass
