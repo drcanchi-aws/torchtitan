@@ -24,6 +24,9 @@ from torchtitan.models.moe import MoE
 from torchtitan.protocols.model import AttentionMasksType
 from torchtitan.protocols.train_spec import ModelProtocol
 
+# RoPE nki kernel
+from torchtitan.tools.neuron_kernels import apply_rope_kernel
+
 from .args import Qwen3ModelArgs
 
 
@@ -216,7 +219,8 @@ class Attention(nn.Module):
             xk = self.k_norm(xk)
 
         # Apply rotary embedding
-        xq, xk = apply_rotary_emb(xq, xk, rope_cache)
+        # xq, xk = apply_rotary_emb(xq, xk, rope_cache)
+        xq, xk = apply_rope_kernel(apply_rotary_emb, xq, xk, rope_cache)
 
         # repeat k/v heads if n_kv_heads < n_heads
         keys = repeat_kv(xk, self.n_rep)  # (bs, seqlen, n_local_heads, head_dim)
